@@ -31,27 +31,41 @@ class HNIMApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'HNIM',
-      theme: ThemeData(
+      themeMode: ThemeMode.dark,
+      darkTheme: ThemeData(
         brightness: Brightness.dark,
-        primarySwatch: Colors.blue,
+        useMaterial3: true,
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF4A90E2),
-          secondary: Color(0xFF50E3C2),
-          background: Color(0xFF1E1E2C),
-          surface: Color(0xFF2D2D44),
+          primary: Color(0xFF00E5FF), // Electric Blue/Cyan
+          secondary: Color(0xFFB388FF), // Accent Purple
+          background: Color(0xFF0F172A), // Deep Midnight
+          surface: Color(0xFF1E293B), // Sleek surface
         ),
-        scaffoldBackgroundColor: const Color(0xFF1E1E2C),
+        scaffoldBackgroundColor: const Color(0xFF0F172A),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF2D2D44),
+          backgroundColor: Colors.transparent,
           elevation: 0,
-        ),
-        cardTheme: CardThemeData(
-          color: const Color(0xFF2D2D44),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 0.5,
           ),
         ),
-        useMaterial3: true,
+        cardTheme: CardThemeData(
+          color: const Color(0xFF1E293B),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.white.withOpacity(0.05), width: 1),
+          ),
+        ),
+        textTheme: const TextTheme(
+          headlineMedium: TextStyle(fontWeight: FontWeight.w800, color: Colors.white),
+          titleLarge: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          titleMedium: TextStyle(fontWeight: FontWeight.w600, color: Colors.white70),
+        ),
       ),
       initialRoute: '/',
       routes: {
@@ -80,6 +94,14 @@ class _AppNavigationState extends State<AppNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<SettingsProvider>(context);
+    
+    if (settings.isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(

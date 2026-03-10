@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../models/device.dart';
+import '../providers/settings_provider.dart';
+import 'qr_scanner_screen.dart';
 
 class EditDeviceScreen extends StatefulWidget {
   final Device device;
@@ -18,8 +20,8 @@ class _EditDeviceScreenState extends State<EditDeviceScreen> {
   late TextEditingController _ipController;
   late TextEditingController _serialController;
   late TextEditingController _detailsController;
-  late String _selectedCategory;
-
+  
+  String? _selectedCategory;
   bool _isSubmitting = false;
 
   @override
@@ -29,7 +31,7 @@ class _EditDeviceScreenState extends State<EditDeviceScreen> {
     _ipController = TextEditingController(text: widget.device.ip ?? '');
     _serialController = TextEditingController(text: widget.device.serialNumber ?? '');
     _detailsController = TextEditingController(text: widget.device.details ?? '');
-    _selectedCategory = widget.device.category ?? 'Server';
+    _selectedCategory = widget.device.category;
   }
 
   @override
@@ -43,6 +45,11 @@ class _EditDeviceScreenState extends State<EditDeviceScreen> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      if (_selectedCategory == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a category')));
+        return;
+      }
+      
       setState(() {
         _isSubmitting = true;
       });
@@ -59,7 +66,7 @@ class _EditDeviceScreenState extends State<EditDeviceScreen> {
         final apiService = Provider.of<ApiService>(context, listen: false);
         await apiService.updateDevice(widget.device.id, updatedData);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Device updated successfully')),
+          const SnackBar(content: Text('Device updated successfully')),
         );
         Navigator.pop(context, true); // Return true to signal a refresh
       } catch (e) {
@@ -78,13 +85,13 @@ class _EditDeviceScreenState extends State<EditDeviceScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Device'),
+        title: const Text('Delete Device'),
         content: Text('Are you sure you want to delete "${widget.device.name}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -95,7 +102,7 @@ class _EditDeviceScreenState extends State<EditDeviceScreen> {
         final apiService = Provider.of<ApiService>(context, listen: false);
         await apiService.deleteDevice(widget.device.id);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Device deleted')),
+          const SnackBar(content: Text('Device deleted')),
         );
         Navigator.pop(context, true);
       } catch (e) {
@@ -108,12 +115,27 @@ class _EditDeviceScreenState extends State<EditDeviceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    List<String> combinedCategories = ['Server', 'Network', 'IoT', 'Mobile', 'Laptop', 'Phone', 'Router/Modem', 'Other'];
+    final customCategories = Provider.of<SettingsProvider>(context).customCategories;
+    
+    // Add custom categories that aren't already in the list
+    for (String cat in customCategories) {
+      if (!combinedCategories.contains(cat)) {
+        combinedCategories.add(cat);
+      }
+    }
+
+    if (_selectedCategory == null || !combinedCategories.contains(_selectedCategory)) {
+      // Set to first if previous category is removed or missing
+      _selectedCategory = combinedCategories.first;
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Device'),
+        title: const Text('Edit Device'),
         actions: [
           IconButton(
-            icon: Icon(Icons.delete, color: Colors.redAccent),
+            icon: const Icon(Icons.delete, color: Colors.redAccent),
             onPressed: _deleteDevice,
             tooltip: 'Delete Device',
           ),
@@ -127,7 +149,7 @@ class _EditDeviceScreenState extends State<EditDeviceScreen> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Device Name'),
+                decoration: const InputDecoration(labelText: 'Device Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a device name';
@@ -135,18 +157,17 @@ class _EditDeviceScreenState extends State<EditDeviceScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _ipController,
-                decoration: InputDecoration(labelText: 'IP Address (Optional)'),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(labelText: 'IP Address (Optional)'),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _selectedCategory,
-                decoration: InputDecoration(labelText: 'Category'),
-                items: ['Server', 'Network', 'IoT', 'Mobile', 'Other']
-                    .map((String value) {
+                decoration: const InputDecoration(labelText: 'Category'),
+                items: combinedCategories.map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value),
@@ -160,24 +181,45 @@ class _EditDeviceScreenState extends State<EditDeviceScreen> {
                   }
                 },
               ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _serialController,
-                decoration: InputDecoration(labelText: 'Serial Number / MAC'),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _serialController,
+                      decoration: const InputDecoration(labelText: 'Serial Number / MAC'),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.qr_code_scanner),
+                     onPressed: () async {
+                      final scannedData = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => QRScannerScreen()),
+                      );
+                      if (scannedData != null && scannedData is String) {
+                        setState(() {
+                           _serialController.text = scannedData;
+                        });
+                      }
+                    },
+                  )
+                ],
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _detailsController,
-                decoration: InputDecoration(labelText: 'Additional Details'),
+                decoration: const InputDecoration(labelText: 'Additional Details'),
                 maxLines: 3,
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
-                child: _isSubmitting ? CircularProgressIndicator() : Text('Save Changes'),
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
+                child: _isSubmitting ? const CircularProgressIndicator() : const Text('Save Changes'),
               ),
             ],
           ),

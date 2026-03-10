@@ -88,4 +88,13 @@ class ApiService {
       throw Exception('Failed to check status: $e');
     }
   }
+
+  Future<bool> testConnection(String tempUrl) async {
+    try {
+      final response = await http.get(Uri.parse('$tempUrl/api/devices')).timeout(const Duration(seconds: 3));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
 }

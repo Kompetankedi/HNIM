@@ -135,6 +135,53 @@ app.get('/api/status/:ip', async (req, res) => {
     });
 });
 
+// Background Task: Ping all devices every 5 minutes
+const PING_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+async function pingDeviceAndUpdateDB(ip) {
+    if (!ip) return;
+    return new Promise((resolve) => {
+        const pingCmd = `ping -c 2 -W 2 ${ip}`;
+        exec(pingCmd, { timeout: 10000 }, async (error, stdout, stderr) => {
+            const isOnline = !error;
+            const now = new Date();
+            try {
+                const pool = await poolPromise;
+                await pool.request()
+                    .input('ip', sql.VarChar, ip)
+                    .input('status', sql.VarChar, isOnline ? 'online' : 'offline')
+                    .input('lastSeen', sql.DateTime, isOnline ? now : null)
+                    .query('UPDATE Devices SET Status = @status, LastSeen = CASE WHEN @lastSeen IS NOT NULL THEN @lastSeen ELSE LastSeen END WHERE IP = @ip');
+            } catch (dbErr) {
+                console.error(`Could not update device status for ${ip} in DB:`, dbErr.message);
+            }
+            resolve(isOnline);
+        });
+    });
+}
+
+function startPeriodicPings() {
+    console.log('⏱️  Starting background ping cron job (every 5 minutes)...');
+    setInterval(async () => {
+        try {
+            const pool = await poolPromise;
+            const result = await pool.request().query('SELECT IP FROM Devices WHERE IP IS NOT NULL AND IP != \'\'');
+            const devices = result.recordset;
+            if (devices.length > 0) {
+                console.log(`[Cron] Pinging ${devices.length} devices...`);
+                // Process in parallel to avoid long blocking
+                await Promise.all(devices.map(d => pingDeviceAndUpdateDB(d.IP)));
+                console.log(`[Cron] Background ping complete.`);
+            }
+        } catch (err) {
+            console.error('[Cron] Error during periodic ping:', err.message);
+        }
+    }, PING_INTERVAL);
+}
+
+// Start the cron job
+startPeriodicPings();
+
 app.listen(port, () => {
     const networkInterfaces = os.networkInterfaces();
     let localIp = 'localhost';
