@@ -20,7 +20,7 @@ services:
     container_name: hnim-backend
     restart: always
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:${PORT:-3000}"
     environment:
       - DB_HOST=mssql
       - DB_USER=${DB_USER}

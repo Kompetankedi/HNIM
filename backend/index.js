@@ -180,24 +180,32 @@ function startPeriodicPings() {
 }
 
 // Start the cron job
-startPeriodicPings();
-
-app.listen(port, () => {
-    const networkInterfaces = os.networkInterfaces();
-    let localIp = 'localhost';
+// Initialize the server only after connecting to the database
+poolPromise.then(() => {
+    startPeriodicPings();
     
-    for (const interfaceName in networkInterfaces) {
-        const interfaces = networkInterfaces[interfaceName];
-        for (const iface of interfaces) {
-            if (!iface.internal && iface.family === 'IPv4') {
-                localIp = iface.address;
+    app.listen(port, () => {
+        const networkInterfaces = os.networkInterfaces();
+        let localIp = 'localhost';
+        
+        for (const interfaceName in networkInterfaces) {
+            const interfaces = networkInterfaces[interfaceName];
+            for (const iface of interfaces) {
+                if (!iface.internal && iface.family === 'IPv4') {
+                    localIp = iface.address;
+                }
             }
         }
-    }
 
-    console.log('====================================');
-    console.log(`🚀 Backend server is up and running!`);
-    console.log(`🌍 Local Access:   http://localhost:${port}`);
-    console.log(`📡 Network Access: http://${localIp}:${port}`);
-    console.log('====================================');
+        console.log('====================================');
+        console.log(`✅ Database context successfully established!`);
+        console.log(`🚀 Backend server is up and running!`);
+        console.log(`🌍 Local Access:   http://localhost:${port}`);
+        console.log(`📡 Network Access: http://${localIp}:${port}`);
+        console.log('====================================');
+    });
+}).catch(err => {
+    console.error('❌ Failed to establish database connection! Backend server will not start.');
+    console.error(err.message);
+    process.exit(1);
 });
