@@ -107,14 +107,13 @@ Mobil uygulamayı doğrudan fiziksel bir cihaza (Android/iOS) paketlemek için:
 4. Başarılı (yeşil bar) ibaresini aldıktan sonra, en alttaki "Ayarları Kaydet" kısmına (Save Settings) tıklayınız.
 
 ---
-
 ## 📷 Ekran Görüntüleri
 
-| Dashboard (Karanlık Tema) | Envanter Listesi (Gelişmiş Filtre) | Ayarlar, URL ping, Dil ve Custom Kategoriler |
+| Foto 1 | Foto 2 | Foto 3 |
 | :---: | :---: | :---: |
-| *<img width="420" height="987" alt="resim" src="https://github.com/user-attachments/assets/a52eb3a7-94e8-4b77-9f0c-befb0e1492c7" />
-* | *<img width="426" height="991" alt="resim" src="https://github.com/user-attachments/assets/e6e2f528-188a-4fe3-b489-c6980488ae63" />
+| *<img width="420" height="987" alt="resim" src="https://github.com/user-attachments/assets/a52eb3a7-94e8-4b77-9f0c-befb0e1492c7" />* | *<img width="426" height="991" alt="resim" src="https://github.com/user-attachments/assets/e6e2f528-188a-4fe3-b489-c6980488ae63" />* | *<img width="429" height="989" alt="resim" src="https://github.com/user-attachments/assets/af53f9b4-dbca-4964-aa4c-cdbe9744eb01" />
 * |
+
 
 ---
 ---
