@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: hnim-mssql
+    restart: always
+    environment:
+      - ACCEPT_EULA=${ACCEPT_EULA}
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - ./data/mssql:/var/opt/mssql
+    labels:
+      - "casaos.icon=https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/MSSQL/icon.png"
+      - "casaos.title=HNIM MSSQL"
+
+  backend:
+    build: ./backend
+    container_name: hnim-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - PORT=${PORT}
+    depends_on:
+      - mssql
+    labels:
+      - "casaos.icon=https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/Nodejs/icon.png"
+      - "casaos.title=HNIM Backend"
+
+volumes:
+  mssql_data:
