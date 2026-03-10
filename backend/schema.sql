@@ -1,12 +1,3 @@
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'HNIM')
-BEGIN
-    CREATE DATABASE HNIM;
-END
-GO
-
-USE HNIM;
-GO
-
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Devices' AND xtype='U')
 BEGIN
     CREATE TABLE Devices (
@@ -20,7 +11,7 @@ BEGIN
         LastSeen DATETIME,
         CreatedAt DATETIME DEFAULT GETDATE()
     );
-END
+END;
 
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Maintenance' AND xtype='U')
 BEGIN
@@ -32,4 +23,4 @@ BEGIN
         NextMaintenanceAt DATETIME,
         Notes TEXT
     );
-END
+END;
