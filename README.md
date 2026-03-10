@@ -112,7 +112,9 @@ Mobil uygulamayı doğrudan fiziksel bir cihaza (Android/iOS) paketlemek için:
 
 | Dashboard (Karanlık Tema) | Envanter Listesi (Gelişmiş Filtre) | Ayarlar, URL ping, Dil ve Custom Kategoriler |
 | :---: | :---: | :---: |
-| *(Görsel Yeri)* | *(Görsel Yeri)* | *(Görsel Yeri)* |
+| *<img width="420" height="987" alt="resim" src="https://github.com/user-attachments/assets/a52eb3a7-94e8-4b77-9f0c-befb0e1492c7" />
+* | *<img width="426" height="991" alt="resim" src="https://github.com/user-attachments/assets/e6e2f528-188a-4fe3-b489-c6980488ae63" />
+* |
 
 ---
 ---
