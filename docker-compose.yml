@@ -16,7 +16,7 @@ services:
       - "casaos.title=HNIM MSSQL"
 
   backend:
-    build: ./backend
+    image: kompetankedi/hnim-backend:latest
     container_name: hnim-backend
     restart: always
     ports:
@@ -30,7 +30,7 @@ services:
     depends_on:
       - mssql
     labels:
-      - "casaos.icon=https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/Nodejs/icon.png"
+      - "casaos.icon=https://img.icons8.com/fluent/1200/node-js.jpg"
       - "casaos.title=HNIM Backend"
 
 volumes:
