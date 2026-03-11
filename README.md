@@ -151,7 +151,7 @@ services:
 x-casaos:
   author: kompetankedi
   category: Utilities
-  icon: https://img.icons8.com/fluent/1200/node-js.jpg
+  icon: https://github.com/Kompetankedi/HNIM/blob/main/hnim(1).png?raw=true
   index: /
   port_map: "3080"
   scheme: http
@@ -294,7 +294,7 @@ services:
     restart: always
     network_mode: bridge
     labels:
-      casaos.icon: https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/AppCenter.png
+      casaos.icon: https://github.com/Kompetankedi/HNIM/blob/main/hnim(1).png?raw=true
       casaos.title: HNIM Web Dashboard
 
   backend:
@@ -320,7 +320,7 @@ services:
     restart: always
     network_mode: bridge
     labels:
-      casaos.icon: https://img.icons8.com/fluent/1200/node-js.jpg
+      casaos.icon: https://github.com/Kompetankedi/HNIM/blob/main/hnim(1).png?raw=true
       casaos.title: HNIM Backend
 
   mssql:
@@ -342,7 +342,7 @@ services:
         target: /var/opt/mssql
     network_mode: bridge
     labels:
-      casaos.icon: https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/MSSQL/icon.png
+      casaos.icon: https://github.com/Kompetankedi/HNIM/blob/main/hnim(1).png?raw=true
       casaos.title: HNIM MSSQL
 
 x-casaos:

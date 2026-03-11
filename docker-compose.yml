@@ -12,7 +12,7 @@ services:
     volumes:
       - ./data/mssql:/var/opt/mssql
     labels:
-      - "casaos.icon=https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/MSSQL/icon.png"
+      - "casaos.icon=https://github.com/Kompetankedi/HNIM/blob/main/hnim(1).png?raw=true
       - "casaos.title=HNIM MSSQL"
 
   backend:
@@ -30,7 +30,7 @@ services:
     depends_on:
       - mssql
     labels:
-      - "casaos.icon=https://img.icons8.com/fluent/1200/node-js.jpg"
+      - "casaos.icon=https://github.com/Kompetankedi/HNIM/blob/main/hnim(1).png?raw=true
       - "casaos.title=HNIM Backend"
 
 volumes:
