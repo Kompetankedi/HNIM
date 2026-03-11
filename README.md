@@ -23,7 +23,8 @@ Homelab ortamları (ev sunucuları) için özel olarak tasarlanmış yepyeni, ş
 - **🌍 Çift Dil Desteği (Bilingual)**: Hem **Türkçe** hem de **İngilizce** desteği sunar. Uygulamayı yeniden başlatmaya gerek kalmadan "Ayarlar" sekmesinden anında dil değiştirebilirsiniz.
 - **🏷️ Özel Ek Kategoriler**: Standart Cihaz tipleriyle sınırlı kalmayın! Ayarlar kısmına gidip virgülle ayırarak yepyeni kategoriler oluşturabilirsiniz (örn: Switch, Güvenlik Kamerası, 3D Yazıcı).
 - **🛠️ Dinamik API Adresi Bağlantısı**: Tüm mobil cihazları, sadece tek bir URL adresiyle yerel ev ağınızdaki Backend sunucunuza kolayca bağlayın.
-- **🐳 Docker ve CasaOS Uyumlu**: Node.js API ve dedike "Microsoft SQL Server" (MSSQL) veritabanı içeren Docker Compose paketidir.
+- **🐳 Docker ve CasaOS Uyumlu**: Node.js API, "Microsoft SQL Server" (MSSQL) veritabanı ve isteğe bağlı **Flutter Web Dashboard** içeren Docker Compose paketidir.
+- **🖥️ Web Dashboard (Flutter Web)**: Artık sadece mobilden değil, tarayıcınız üzerinden de tüm envanterinizi yönetebilirsiniz. 
 
 ---
 
@@ -71,13 +72,93 @@ Node.js ve MSSQL veritabanı birbirine konteyner üzerinden bağlanacak şekilde
    DB_USER=sa
    DB_PASSWORD=HNIM_Strong_Pass_2024!
    DB_NAME=HNIM
-   PORT=3055
+   PORT=3000
    ```
 3. Docker Compose ile başlatın:
    ```bash
    docker compose up --build -d
    ```
 4. Sadece bitti! Express API `http://localhost:3000` portunda, Veritabanı ise `1433` portunda çalışmaya başlayacak. Tablolarınız otomatik çalıştırılan SQL şemasıyla sizin için ilk açılışta yaratılacak. 
+
+### 3️⃣ CasaOS Kurulumu (Hızlı Kurulum)
+
+CasaOS kullanıcıları, aşağıdaki özel yapılandırmayı kullanarak uygulamayı saniyeler içinde "App Store -> Custom Install -> Import" menüsü üzerinden kurabilirler:
+
+```yaml
+name: hnim-full-stack
+services:
+  frontend:
+    container_name: hnim-frontend
+    image: kompetankedi/hnim-frontend:latest
+    ports:
+      - target: 80
+        published: "3080" # Web paneline bu porttan (örn: http://ip:3080) erişebilirsiniz.
+        protocol: tcp
+    restart: always
+    network_mode: bridge
+    labels:
+      casaos.icon: https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/AppCenter.png
+      casaos.title: HNIM Web Dashboard
+
+  backend:
+    container_name: hnim-backend
+    image: kompetankedi/hnim-backend:latest
+    depends_on:
+      mssql:
+        condition: service_started
+        required: true
+    environment:
+      - DB_HOST=hnim-mssql
+      - DB_NAME=HNIM
+      - DB_PASSWORD=HNIM_Strong_Pass_2024!
+      - DB_USER=sa
+      - PORT=3005
+    hostname: hnim-backend
+    links:
+      - mssql:hnim-mssql
+    ports:
+      - target: 3005
+        published: "3005"
+        protocol: tcp
+    restart: always
+    network_mode: bridge
+    labels:
+      casaos.icon: https://img.icons8.com/fluent/1200/node-js.jpg
+      casaos.title: HNIM Backend
+
+  mssql:
+    container_name: hnim-mssql
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Developer
+      - MSSQL_SA_PASSWORD=HNIM_Strong_Pass_2024!
+    hostname: hnim-mssql
+    ports:
+      - target: 1433
+        published: "1433"
+        protocol: tcp
+    restart: always
+    volumes:
+      - type: bind
+        source: ./data/mssql
+        target: /var/opt/mssql
+    network_mode: bridge
+    labels:
+      casaos.icon: https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/MSSQL/icon.png
+      casaos.title: HNIM MSSQL
+
+x-casaos:
+  author: kompetankedi
+  category: Utilities
+  icon: https://img.icons8.com/fluent/1200/node-js.jpg
+  index: /
+  port_map: "3080"
+  scheme: http
+  title:
+    en_us: Homelab Network Inventory Manager
+
+```
 
 ### 2️⃣ Frontend (Uygulama) Kurulumu (Flutter)
 Mobil uygulamayı doğrudan fiziksel bir cihaza (Android/iOS) paketlemek için:
@@ -139,7 +220,8 @@ A sleek, self-hosted, full-stack network inventory and monitoring application de
 - **🌍 Full Localization (Bilingual)**: Out-of-the-box support for both **English** and **Türkçe**. Instantly switch languages via the Settings menu without requiring an application restart.
 - **🏷️ Custom Categories**: Not limited to standard categories! Go to Settings and add entirely customized comma-separated hardware categories (e.g., Switch, Camera, 3D Printer).
 - **🛠️ Remote API Configuration**: Dynamically bind your client app to your backend API. Includes an automated **Test Connection** ping explicitly designed to verify reachability.
-- **🐳 Docker & CasaOS Ready**: Contains comprehensive Docker Compose infrastructure handling the Node.js backend tying straight into a dedicated Microsoft SQL Server (MSSQL) container.
+- **🐳 Docker & CasaOS Ready**: Contains comprehensive Docker Compose infrastructure handling the Node.js backend, MSSQL database, and an optional **Flutter Web Dashboard**.
+- **🖥️ Web Dashboard (Flutter Web)**: Manage your entire inventory directly from your browser in addition to the mobile app.
 
 ---
 
@@ -187,13 +269,93 @@ The backend service and the MSSQL database are fully containerized for a zero-fr
    DB_USER=sa
    DB_PASSWORD=HNIM_Strong_Pass_2024!
    DB_NAME=HNIM
-   PORT=3055
+   PORT=3000
    ```
 3. Start the services via Docker Compose:
    ```bash
    docker compose up --build -d
    ```
 4. The Express API will now be rolling on `http://localhost:3000` (or your host IP), and the Database on port `1433`. The database schemas and `Devices` table are automatically initialized on the first boot! 🎉
+
+### 3️⃣ CasaOS Installation (Quick Install)
+
+CasaOS users can deploy the entire stack instantly by importing the following configuration through the "App Store -> Custom Install -> Import" menu:
+
+```yaml
+name: hnim-full-stack
+services:
+  frontend:
+    container_name: hnim-frontend
+    image: kompetankedi/hnim-frontend:latest
+    ports:
+      - target: 80
+        published: "3080" # Web paneline bu porttan (örn: http://ip:3080) erişebilirsiniz.
+        protocol: tcp
+    restart: always
+    network_mode: bridge
+    labels:
+      casaos.icon: https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/AppCenter.png
+      casaos.title: HNIM Web Dashboard
+
+  backend:
+    container_name: hnim-backend
+    image: kompetankedi/hnim-backend:latest
+    depends_on:
+      mssql:
+        condition: service_started
+        required: true
+    environment:
+      - DB_HOST=hnim-mssql
+      - DB_NAME=HNIM
+      - DB_PASSWORD=HNIM_Strong_Pass_2024!
+      - DB_USER=sa
+      - PORT=3005
+    hostname: hnim-backend
+    links:
+      - mssql:hnim-mssql
+    ports:
+      - target: 3005
+        published: "3005"
+        protocol: tcp
+    restart: always
+    network_mode: bridge
+    labels:
+      casaos.icon: https://img.icons8.com/fluent/1200/node-js.jpg
+      casaos.title: HNIM Backend
+
+  mssql:
+    container_name: hnim-mssql
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Developer
+      - MSSQL_SA_PASSWORD=HNIM_Strong_Pass_2024!
+    hostname: hnim-mssql
+    ports:
+      - target: 1433
+        published: "1433"
+        protocol: tcp
+    restart: always
+    volumes:
+      - type: bind
+        source: ./data/mssql
+        target: /var/opt/mssql
+    network_mode: bridge
+    labels:
+      casaos.icon: https://raw.githubusercontent.com/IceWhaleTech/CasaOS-AppStore/main/Apps/MSSQL/icon.png
+      casaos.title: HNIM MSSQL
+
+x-casaos:
+  author: kompetankedi
+  category: Utilities
+  icon: https://img.icons8.com/fluent/1200/node-js.jpg
+  index: /
+  port_map: "3080"
+  scheme: http
+  title:
+    en_us: Homelab Network Inventory Manager
+
+```
 
 ### 2️⃣ Frontend Setup (Flutter)
 If you wish to compile the mobile application directly to your physical device:
