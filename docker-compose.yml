@@ -1,37 +1,72 @@
+name: hnim-full-stack
 services:
-  mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: hnim-mssql
-    restart: always
-    environment:
-      - ACCEPT_EULA=${ACCEPT_EULA}
-      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
-      - MSSQL_PID=Developer
+  frontend:
+    container_name: hnim-frontend
+    image: kompetankedi/hnim-frontend:latest
     ports:
-      - "1433:1433"
-    volumes:
-      - ./data/mssql:/var/opt/mssql
+      - target: 80
+        published: "${FRONTEND_PORT:-3080}"
+        protocol: tcp
+    restart: always
+    network_mode: bridge
     labels:
       - "casaos.icon=https://github.com/Kompetankedi/HNIM/blob/main/hnim(1).png?raw=true"
-      - "casaos.title=HNIM MSSQL"
+      - "casaos.title=HNIM Web Dashboard"
 
   backend:
-    image: kompetankedi/hnim-backend:latest
     container_name: hnim-backend
-    restart: always
-    ports:
-      - "${PORT:-3000}:${PORT:-3000}"
-    environment:
-      - DB_HOST=mssql
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - PORT=${PORT}
+    image: kompetankedi/hnim-backend:latest
     depends_on:
-      - mssql
+      mssql:
+        condition: service_started
+        required: true
+    environment:
+      - DB_HOST=${DB_HOST:-hnim-mssql}
+      - DB_NAME=${DB_NAME:-HNIM}
+      - DB_PASSWORD=${DB_PASSWORD:-HNIM_Strong_Pass_2024!}
+      - DB_USER=${DB_USER:-sa}
+      - PORT=${PORT:-3005}
+    hostname: hnim-backend
+    links:
+      - mssql:hnim-mssql
+    ports:
+      - target: ${PORT:-3005}
+        published: "${PORT:-3005}"
+        protocol: tcp
+    restart: always
+    network_mode: bridge
     labels:
       - "casaos.icon=https://github.com/Kompetankedi/HNIM/blob/main/hnim(1).png?raw=true"
       - "casaos.title=HNIM Backend"
 
-volumes:
-  mssql_data:
+  mssql:
+    container_name: hnim-mssql
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=${ACCEPT_EULA:-Y}
+      - MSSQL_PID=${MSSQL_PID:-Developer}
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-HNIM_Strong_Pass_2024!}
+    hostname: hnim-mssql
+    ports:
+      - target: 1433
+        published: "1433"
+        protocol: tcp
+    restart: always
+    volumes:
+      - type: bind
+        source: ./data/mssql
+        target: /var/opt/mssql
+    network_mode: bridge
+    labels:
+      - "casaos.icon=https://github.com/Kompetankedi/HNIM/blob/main/hnim(1).png?raw=true"
+      - "casaos.title=HNIM MSSQL"
+
+x-casaos:
+  author: kompetankedi
+  category: Utilities
+  icon: https://github.com/Kompetankedi/HNIM/blob/main/hnim(1).png?raw=true
+  index: /
+  port_map: "${FRONTEND_PORT:-3080}"
+  scheme: http
+  title:
+    en_us: Homelab Network Inventory Manager
